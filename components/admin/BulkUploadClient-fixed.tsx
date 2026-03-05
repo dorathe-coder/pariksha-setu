@@ -275,10 +275,7 @@ export default function BulkUploadClient({ tests, subjects, topics, languages, d
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4 text-sm text-amber-800">
               <strong>Format Guide:</strong> Paste questions from any PDF. System auto-detects question numbers, A/B/C/D options, and "Answer: X" lines.
               <br />
-              <span className="font-mono text-xs block mt-1.5 text-amber-700">1. Question text here{"
-"}A) Option A  B) Option B  C) Option C  D) Option D{"
-"}Answer: B{"
-"}Explanation: Optional explanation here</span>
+              <span className="font-mono text-xs block mt-1.5 text-amber-700 whitespace-pre">{"1. Question text here\nA) Option A  B) Option B  C) Option C  D) Option D\nAnswer: B\nExplanation: Optional explanation here"}</span>
             </div>
             <textarea
               value={pasteText}
