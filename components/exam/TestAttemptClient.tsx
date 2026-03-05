@@ -175,7 +175,7 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
 
     // Update attempt count
     await supabase.rpc("calculate_rank", { p_result_id: result.id }).maybeSingle();
-    await supabase.from("tests").update({ attempt_count: test.attempt_count + 1 }).eq("id", test.id);
+    await supabase.from("tests").update({ attempt_count: (test as any).attempt_count + 1 }).eq("id", test.id);
 
     router.push(`/result/${result.id}`);
   }, [submitting, answers, questions, test, userId, timeLeft, supabase, router]);
