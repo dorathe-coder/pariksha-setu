@@ -254,7 +254,8 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
         const issueMap = new Map(data.issues.map((i: any) => [i.id, i]));
         setParsedQuestions(prev => prev.map(q => {
           const issue = issueMap.get(q._id);
-          return issue ? { ...q, _hasIssue: true, _issueMsg: issue.message } : { ...q, _hasIssue: false, _issueMsg: undefined };
+          return issue ? { ...q, _hasIssue: true, _issueMsg: (issue as any).message } : { ...q, _hasIssue: false, _issueMsg: undefined };
+          return issue ? { ...q, _hasIssue: true, _issueMsg: (issue as any).message } : { ...q, _hasIssue: false, _issueMsg: undefined };
         }));
       }
       setAiStatus(`✅ Quality check complete! Score: ${data.summary?.quality_score || 0}/100`);
