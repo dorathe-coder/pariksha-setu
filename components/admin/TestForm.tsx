@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Calculator, AlertCircle, CheckCircle } from "lucide-react";
 
 interface Props {
   exams: any[];
@@ -14,12 +14,32 @@ interface Props {
   defaultValues?: any;
 }
 
+const NEG_PRESETS = [
+  { label: "None", value: 0 },
+  { label: "-¼", value: 0.25 },
+  { label: "-⅓", value: 0.33 },
+  { label: "-½", value: 0.5 },
+  { label: "-1", value: 1 },
+];
+
 export default function TestForm({ exams, categories, subjects, topics, languages, testId, defaultValues }: Props) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(defaultValues?.subject_id || "");
+  const [totalQuestions, setTotalQuestions] = useState(defaultValues?.total_questions || 0);
+  const [marksPerQ, setMarksPerQ] = useState<number>(defaultValues?.marks_per_question || 1);
+  const [negMarking, setNegMarking] = useState<number>(defaultValues?.negative_marking || 0);
+  const [totalMarks, setTotalMarks] = useState<number>(defaultValues?.total_marks || 100);
+  const [autoCalc, setAutoCalc] = useState(true);
+
+  useEffect(() => {
+    if (autoCalc && totalQuestions > 0 && marksPerQ > 0) {
+      setTotalMarks(totalQuestions * marksPerQ);
+    }
+  }, [totalQuestions, marksPerQ, autoCalc]);
 
   const filteredTopics = topics.filter(t => !selectedSubject || t.subject_id === parseInt(selectedSubject));
 
@@ -32,144 +52,227 @@ export default function TestForm({ exams, categories, subjects, topics, language
 
     const payload = {
       title: formData.get("title") as string,
-      title_gu: formData.get("title_gu") as string || null,
-      description: formData.get("description") as string || null,
+      title_gu: (formData.get("title_gu") as string) || null,
+      description: (formData.get("description") as string) || null,
       exam_id: formData.get("exam_id") ? parseInt(formData.get("exam_id") as string) : null,
       category_id: formData.get("category_id") ? parseInt(formData.get("category_id") as string) : null,
       subject_id: formData.get("subject_id") ? parseInt(formData.get("subject_id") as string) : null,
       topic_id: formData.get("topic_id") ? parseInt(formData.get("topic_id") as string) : null,
       language_id: formData.get("language_id") ? parseInt(formData.get("language_id") as string) : null,
       timer_minutes: parseInt(formData.get("timer_minutes") as string) || 60,
-      total_marks: parseInt(formData.get("total_marks") as string) || 100,
-      marks_per_question: parseFloat(formData.get("marks_per_question") as string) || 1,
-      negative_marking: parseFloat(formData.get("negative_marking") as string) || 0,
+      total_marks: totalMarks,
+      marks_per_question: marksPerQ,
+      negative_marking: negMarking,
+      passing_marks: formData.get("passing_marks") ? parseFloat(formData.get("passing_marks") as string) : null,
       is_free: formData.get("is_free") === "true",
       price: parseFloat(formData.get("price") as string) || 0,
       is_active: formData.get("is_active") === "true",
       year: formData.get("year") ? parseInt(formData.get("year") as string) : null,
     };
 
-    let error;
+    let dbError;
     if (testId) {
-      ({ error } = await supabase.from("tests").update(payload).eq("id", testId));
+      ({ error: dbError } = await supabase.from("tests").update(payload).eq("id", testId));
     } else {
-      ({ error } = await supabase.from("tests").insert(payload));
+      ({ error: dbError } = await supabase.from("tests").insert(payload));
     }
 
-    if (error) { setError(error.message); setLoading(false); return; }
-    router.push("/admin/tests");
-    router.refresh();
+    if (dbError) { setError(dbError.message); setLoading(false); return; }
+    setSuccess(true);
+    setTimeout(() => { router.push("/admin/tests"); router.refresh(); }, 800);
   };
 
-  const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all bg-white";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  const ic = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all bg-white";
+  const lc = "block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide";
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-6">
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl mb-5">{error}</div>}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 shrink-0" /> Test saved! Redirecting...
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        <div className="md:col-span-2">
-          <label className={labelClass}>Test Title (English) *</label>
-          <input name="title" required defaultValue={defaultValues?.title || ""} className={inputClass} placeholder="e.g. GPSC Class 1-2 Mock Test 1" />
-        </div>
-        <div className="md:col-span-2">
-          <label className={labelClass}>Test Title (Gujarati)</label>
-          <input name="title_gu" defaultValue={defaultValues?.title_gu || ""} className={inputClass} placeholder="ગુજરાતીમાં ટેસ્ટ નામ (optional)" />
-        </div>
-        <div>
-          <label className={labelClass}>Exam</label>
-          <select name="exam_id" defaultValue={defaultValues?.exam_id || ""} className={inputClass}>
-            <option value="">Select Exam</option>
-            {exams.map(e => <option key={e.id} value={e.id}>{e.icon} {e.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Category</label>
-          <select name="category_id" defaultValue={defaultValues?.category_id || ""} className={inputClass}>
-            <option value="">Select Category</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Subject</label>
-          <select name="subject_id" value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className={inputClass}>
-            <option value="">Select Subject</option>
-            {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Topic</label>
-          <select name="topic_id" defaultValue={defaultValues?.topic_id || ""} className={inputClass}>
-            <option value="">Select Topic</option>
-            {filteredTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Language</label>
-          <select name="language_id" defaultValue={defaultValues?.language_id || 1} className={inputClass}>
-            {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Year (for Previous Year papers)</label>
-          <input name="year" type="number" defaultValue={defaultValues?.year || ""} className={inputClass} placeholder="e.g. 2023" min="2000" max="2030" />
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Basic Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className={lc}>Test Title (English) *</label>
+            <input name="title" required defaultValue={defaultValues?.title || ""} className={ic} placeholder="e.g. GPSC Class 1-2 Mock Test 1" />
+          </div>
+          <div className="md:col-span-2">
+            <label className={lc}>Test Title (Gujarati) <span className="normal-case font-normal text-gray-400">optional</span></label>
+            <input name="title_gu" defaultValue={defaultValues?.title_gu || ""} className={ic} placeholder="ગુજરાતીમાં ટેસ્ટ નામ" />
+          </div>
+          <div className="md:col-span-2">
+            <label className={lc}>Description</label>
+            <textarea name="description" defaultValue={defaultValues?.description || ""} className={ic + " resize-none"} rows={2} placeholder="Short description for students" />
+          </div>
+          <div>
+            <label className={lc}>Exam</label>
+            <select name="exam_id" defaultValue={defaultValues?.exam_id || ""} className={ic}>
+              <option value="">Select Exam</option>
+              {exams.map(e => <option key={e.id} value={e.id}>{e.icon} {e.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Category</label>
+            <select name="category_id" defaultValue={defaultValues?.category_id || ""} className={ic}>
+              <option value="">Select Category</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Subject</label>
+            <select name="subject_id" value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className={ic}>
+              <option value="">Select Subject</option>
+              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Topic</label>
+            <select name="topic_id" defaultValue={defaultValues?.topic_id || ""} className={ic}>
+              <option value="">Select Topic</option>
+              {filteredTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Language</label>
+            <select name="language_id" defaultValue={defaultValues?.language_id || 1} className={ic}>
+              {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Year <span className="normal-case font-normal text-gray-400">(Previous Year)</span></label>
+            <input name="year" type="number" defaultValue={defaultValues?.year || ""} className={ic} placeholder="e.g. 2023" min="2000" max="2030" />
+          </div>
         </div>
       </div>
 
-      <hr className="border-gray-100 my-5" />
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Test Settings</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-        <div>
-          <label className={labelClass}>Timer (minutes)</label>
-          <input name="timer_minutes" type="number" defaultValue={defaultValues?.timer_minutes || 60} required className={inputClass} min="5" max="300" />
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            <Calculator className="w-4 h-4" /> Marks & Timing
+          </h3>
+          <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+            <div onClick={() => setAutoCalc(!autoCalc)}
+              className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${autoCalc ? "bg-blue-900" : "bg-gray-200"}`}>
+              <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${autoCalc ? "translate-x-4" : "translate-x-0.5"}`}></div>
+            </div>
+            Auto total marks
+          </label>
         </div>
-        <div>
-          <label className={labelClass}>Total Marks</label>
-          <input name="total_marks" type="number" defaultValue={defaultValues?.total_marks || 100} required className={inputClass} min="1" />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+          <div>
+            <label className={lc}>Timer (min)</label>
+            <input name="timer_minutes" type="number" defaultValue={defaultValues?.timer_minutes || 60} required className={ic} min="5" max="300" />
+          </div>
+          <div>
+            <label className={lc}>Total Questions</label>
+            <input type="number" value={totalQuestions || ""} onChange={e => setTotalQuestions(parseInt(e.target.value) || 0)} className={ic} placeholder="100" min="1" />
+          </div>
+          <div>
+            <label className={lc}>Marks per Q</label>
+            <input type="number" step="0.25" value={marksPerQ} onChange={e => setMarksPerQ(parseFloat(e.target.value) || 1)} className={ic} min="0.25" />
+            <div className="flex gap-1 mt-1.5">
+              {[1, 2, 4].map(v => (
+                <button key={v} type="button" onClick={() => setMarksPerQ(v)}
+                  className={`text-xs px-2 py-0.5 rounded-lg border transition-colors ${marksPerQ === v ? "bg-blue-900 text-white border-blue-900" : "border-gray-200 text-gray-500 hover:border-blue-300"}`}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className={lc}>Total Marks</label>
+            <input type="number" value={totalMarks} onChange={e => { setTotalMarks(parseInt(e.target.value) || 0); setAutoCalc(false); }}
+              className={ic + (autoCalc ? " bg-gray-50 text-gray-500" : "")} min="1" readOnly={autoCalc} />
+            {autoCalc && totalQuestions > 0 && <p className="text-xs text-blue-600 mt-1">= {totalQuestions} × {marksPerQ}</p>}
+          </div>
         </div>
-        <div>
-          <label className={labelClass}>Marks per Question</label>
-          <input name="marks_per_question" type="number" step="0.25" defaultValue={defaultValues?.marks_per_question || 1} className={inputClass} />
+
+        <div className="mb-4">
+          <label className={lc}>Negative Marking</label>
+          <div className="flex flex-wrap gap-2 mt-1.5">
+            {NEG_PRESETS.map(p => (
+              <button key={p.value} type="button" onClick={() => setNegMarking(p.value)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${negMarking === p.value
+                  ? p.value === 0 ? "bg-green-600 text-white border-green-600" : "bg-red-600 text-white border-red-600"
+                  : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"}`}>
+                {p.label}
+              </button>
+            ))}
+            <input type="number" step="0.01" value={negMarking} onChange={e => setNegMarking(parseFloat(e.target.value) || 0)}
+              className="border border-gray-200 rounded-xl px-3 py-2 text-sm w-24 focus:outline-none focus:border-blue-900 bg-white" min="0" max="10" placeholder="Custom" />
+          </div>
+          {negMarking > 0 && (
+            <p className="text-xs text-red-600 mt-2">⚠️ Wrong answer = -{negMarking} mark{negMarking !== 1 ? "s" : ""}</p>
+          )}
         </div>
-        <div>
-          <label className={labelClass}>Negative Marking</label>
-          <select name="negative_marking" defaultValue={defaultValues?.negative_marking || 0} className={inputClass}>
-            <option value="0">None</option>
-            <option value="0.25">-0.25</option>
-            <option value="0.33">-0.33</option>
-            <option value="0.5">-0.5</option>
-            <option value="1">-1</option>
-          </select>
+
+        {totalQuestions > 0 && (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+            <p className="text-xs font-semibold text-blue-700 mb-3">📊 Marking Summary</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              {[
+                { label: "Questions", value: totalQuestions },
+                { label: "Per Correct", value: `+${marksPerQ}` },
+                { label: "Per Wrong", value: negMarking > 0 ? `-${negMarking}` : "0" },
+                { label: "Max Score", value: totalMarks },
+              ].map(s => (
+                <div key={s.label} className="bg-white rounded-lg py-2.5 px-2">
+                  <div className="text-xl font-bold text-gray-900">{s.value}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Other Settings</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className={lc}>Passing Marks</label>
+            <input name="passing_marks" type="number" step="0.5" defaultValue={defaultValues?.passing_marks || ""} className={ic} placeholder="e.g. 40" />
+          </div>
+          <div>
+            <label className={lc}>Pricing</label>
+            <select name="is_free" defaultValue={defaultValues?.is_free === false ? "false" : "true"} className={ic}>
+              <option value="true">Free</option>
+              <option value="false">Paid</option>
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Price (if paid)</label>
+            <input name="price" type="number" step="1" defaultValue={defaultValues?.price || 0} className={ic} placeholder="0" />
+          </div>
+          <div>
+            <label className={lc}>Status</label>
+            <select name="is_active" defaultValue={defaultValues?.is_active === false ? "false" : "true"} className={ic}>
+              <option value="true">✅ Active</option>
+              <option value="false">🔒 Disabled</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className={labelClass}>Price</label>
-          <select name="is_free" defaultValue={defaultValues?.is_free === false ? "false" : "true"} className={inputClass}>
-            <option value="true">Free</option>
-            <option value="false">Paid</option>
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>Price Amount (if paid)</label>
-          <input name="price" type="number" step="1" defaultValue={defaultValues?.price || 0} className={inputClass} placeholder="0" />
-        </div>
-        <div>
-          <label className={labelClass}>Status</label>
-          <select name="is_active" defaultValue={defaultValues?.is_active === false ? "false" : "true"} className={inputClass}>
-            <option value="true">Active (visible to students)</option>
-            <option value="false">Disabled</option>
-          </select>
-        </div>
-      </div>
-      <div className="flex justify-end gap-3">
-        <button type="button" onClick={() => router.back()} className="border border-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-sm">
+
+      <div className="flex flex-col sm:flex-row justify-end gap-3">
+        <button type="button" onClick={() => router.back()}
+          className="border border-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-sm">
           Cancel
         </button>
-        <button type="submit" disabled={loading} className="bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm flex items-center gap-2">
+        <button type="submit" disabled={loading || success}
+          className="bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold px-8 py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {testId ? "Update Test" : "Create Test"}
+          {success ? "✅ Saved!" : testId ? "Update Test" : "Create Test"}
         </button>
       </div>
     </form>

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import BulkUploadClient from "@/components/admin/BulkUploadClient";
+import AIImportClient from "@/components/admin/AIImportClient";
 
 export default async function UploadPage({ searchParams }: { searchParams: { test?: string } }) {
   const supabase = await createClient();
@@ -12,9 +12,19 @@ export default async function UploadPage({ searchParams }: { searchParams: { tes
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Bulk Upload Questions</h1>
-      <p className="text-gray-500 text-sm mb-6">Upload 200+ questions in 2-4 minutes via CSV, Excel, or copy-paste</p>
-      <BulkUploadClient
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Upload Questions</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            AI-powered import — paste any question paper and GPT extracts everything automatically
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
+          <span className="text-lg">✨</span>
+          <span className="text-xs font-semibold text-blue-700">GPT-4 Powered</span>
+        </div>
+      </div>
+      <AIImportClient
         tests={tests || []}
         subjects={subjects || []}
         topics={topics || []}

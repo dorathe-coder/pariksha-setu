@@ -20,7 +20,7 @@ export default async function TestAttemptPage({ params }: { params: { id: string
 
   const { data: questions } = await supabase
     .from("questions")
-    .select("id, question_text, option_a, option_b, option_c, option_d, difficulty, marks, question_order, subject_id, topic_id")
+    .select("id, question_text, option_a, option_b, option_c, option_d, correct_option, difficulty, marks, question_order, subject_id, topic_id")
     .eq("test_id", testId)
     .eq("is_active", true)
     .order("question_order", { ascending: true });

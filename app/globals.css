@@ -2,43 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 body {
-  font-family: Inter, 'Noto Sans Gujarati', sans-serif;
+  font-family: 'Inter', 'Noto Sans Gujarati', -apple-system, sans-serif;
   background-color: #F8FAFC;
   color: #111827;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-900 hover:bg-blue-950 text-white font-medium px-6 py-2.5 rounded-xl transition-colors;
+    @apply bg-blue-900 hover:bg-blue-950 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors;
   }
   .btn-accent {
-    @apply bg-amber-500 hover:bg-amber-600 text-white font-medium px-6 py-2.5 rounded-xl transition-colors;
+    @apply bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors;
   }
   .btn-outline {
     @apply border border-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-xl hover:bg-gray-50 transition-colors;
   }
   .card {
-    @apply bg-white rounded-2xl p-6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
   }
   .input {
     @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all bg-white;
   }
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
-  .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors;
+  .section-title {
+    @apply text-2xl sm:text-3xl font-black text-gray-900;
   }
-  .sidebar-link-active {
-    @apply bg-blue-900 text-white;
-  }
-  .sidebar-link-inactive {
-    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Mobile tap highlight */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Smooth transitions */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Mobile-friendly focus */
+@media (max-width: 768px) {
+  button, a { min-height: 36px; }
+}
