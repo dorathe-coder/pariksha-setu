@@ -12,7 +12,7 @@ const navItems = [
   { href: "/admin/exams", label: "Exams & Categories", icon: Settings },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ adminName }: { adminName?: string }) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) => {
@@ -22,7 +22,6 @@ export default function AdminSidebar() {
 
   return (
     <aside className="w-64 bg-white border-r border-gray-100 min-h-screen flex flex-col shadow-sm">
-      {/* Logo */}
       <div className="p-5 border-b border-gray-100">
         <Link href="/admin" className="flex items-center gap-2.5">
           <div className="w-9 h-9 bg-blue-900 rounded-xl flex items-center justify-center shrink-0">
@@ -35,7 +34,6 @@ export default function AdminSidebar() {
         </Link>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-0.5">
         {navItems.map(item => {
           const active = isActive(item.href, item.exact);
@@ -57,8 +55,12 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="p-3 border-t border-gray-100 space-y-1">
+        {adminName && (
+          <div className="px-3 py-2 text-xs text-gray-500">
+            Logged in as <span className="font-semibold text-gray-700">{adminName}</span>
+          </div>
+        )}
         <Link href="/" target="_blank"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
           <span className="text-base">🌐</span> View Site
