@@ -136,16 +136,16 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
     answered: "bg-green-500 text-white border-green-500",
     "answered-review": "bg-amber-400 text-white border-amber-400",
     review: "bg-purple-500 text-white border-purple-500",
-    unanswered: "bg-white text-gray-500 border-gray-200",
+    unanswered: "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700",
   };
 
   const NavPanel = () => (
     <div className="flex flex-col h-full">
       <div className="grid grid-cols-3 gap-2 mb-4 text-center">
         {[
-          { label: "Answered", value: answeredCount, color: "bg-green-50 text-green-700" },
-          { label: "Skipped", value: questions.length - answeredCount, color: "bg-gray-50 text-gray-600" },
-          { label: "Flagged", value: markedCount, color: "bg-amber-50 text-amber-700" },
+          { label: "Answered", value: answeredCount, color: "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400" },
+          { label: "Skipped", value: questions.length - answeredCount, color: "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400" },
+          { label: "Flagged", value: markedCount, color: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400" },
         ].map(s => (
           <div key={s.label} className={`${s.color} rounded-xl p-2.5 text-center`}>
             <div className="text-xl font-bold">{s.value}</div>
@@ -169,11 +169,11 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
           { color: "bg-green-500", label: "Answered" },
           { color: "bg-amber-400", label: "Marked for Review" },
           { color: "bg-purple-500", label: "Marked (No Answer)" },
-          { color: "bg-white border border-gray-200", label: "Not Visited" },
+          { color: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700", label: "Not Visited" },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-2">
             <div className={`w-4 h-4 rounded ${l.color} shrink-0`} />
-            <span className="text-gray-500">{l.label}</span>
+            <span className="text-gray-500 dark:text-gray-400">{l.label}</span>
           </div>
         ))}
       </div>
@@ -185,7 +185,7 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col">
       {/* Header */}
       <header className={`sticky top-0 z-50 border-b transition-colors ${urgent ? "bg-red-900 border-red-800" : "bg-blue-900 border-blue-800"}`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-3">
@@ -227,25 +227,25 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
         {/* Question Area */}
         <main className="flex-1 min-w-0 flex flex-col gap-4">
           {/* Question Card */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
             {/* Q Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Q {currentIdx + 1} / {questions.length}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${currentQ?.difficulty === "easy" ? "bg-green-100 text-green-700" : currentQ?.difficulty === "hard" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${currentQ?.difficulty === "easy" ? "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400" : currentQ?.difficulty === "hard" ? "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400" : "bg-yellow-100 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400"}`}>
                   {currentQ?.difficulty}
                 </span>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
                   +{currentQ?.marks || test.marks_per_question || 1} marks
                 </span>
                 {test.negative_marking > 0 && (
-                  <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">
                     -{test.negative_marking} wrong
                   </span>
                 )}
               </div>
               <button onClick={toggleMarkReview}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isMarked ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isMarked ? "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
                 <Flag className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{isMarked ? "Flagged" : "Flag"}</span>
               </button>
@@ -253,7 +253,7 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
 
             {/* Question Text */}
             <div className="px-5 py-5">
-              <p className="text-gray-900 font-medium leading-relaxed text-base sm:text-lg">{currentQ?.question_text}</p>
+              <p className="text-gray-900 dark:text-white font-medium leading-relaxed text-base sm:text-lg">{currentQ?.question_text}</p>
             </div>
 
             {/* Options */}
@@ -265,14 +265,14 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
                   <button key={opt} onClick={() => selectAnswer(opt)}
                     className={`w-full text-left flex items-start gap-3 px-4 py-3.5 rounded-xl border-2 transition-all duration-150 active:scale-[0.99] ${
                       isSelected
-                        ? "border-blue-900 bg-blue-50 shadow-sm"
-                        : "border-gray-100 hover:border-blue-200 hover:bg-gray-50/80"
+                        ? "border-blue-900 bg-blue-50 dark:bg-blue-950 shadow-sm"
+                        : "border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-700 hover:bg-gray-50/80 dark:hover:bg-gray-800/80"
                     }`}>
-                    <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${isSelected ? "bg-blue-900 text-white" : "bg-gray-100 text-gray-600"}`}>
+                    <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${isSelected ? "bg-blue-900 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"}`}>
                       {opt}
                     </span>
-                    <span className={`text-sm leading-relaxed mt-0.5 flex-1 ${isSelected ? "text-blue-900 font-medium" : "text-gray-800"}`}>{text}</span>
-                    {isSelected && <CheckCircle className="w-4 h-4 text-blue-900 shrink-0 mt-0.5" />}
+                    <span className={`text-sm leading-relaxed mt-0.5 flex-1 ${isSelected ? "text-blue-900 dark:text-blue-300 font-medium" : "text-gray-800 dark:text-gray-200"}`}>{text}</span>
+                    {isSelected && <CheckCircle className="w-4 h-4 text-blue-900 dark:text-blue-400 shrink-0 mt-0.5" />}
                   </button>
                 );
               })}
@@ -288,7 +288,7 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
               ) : <div />}
               <div className="flex gap-2">
                 <button onClick={() => navigateTo(Math.max(0, currentIdx - 1))} disabled={currentIdx === 0}
-                  className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-30 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                  className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <ChevronLeft className="w-4 h-4" /> Prev
                 </button>
                 <button onClick={() => navigateTo(Math.min(questions.length - 1, currentIdx + 1))} disabled={currentIdx === questions.length - 1}
@@ -299,11 +299,11 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
             </div>
           </div>
 
-          {/* Mobile Quick Nav Dots */}
-          <div className="lg:hidden bg-white rounded-xl border border-gray-200 p-3">
+          {/* Mobile Quick Nav */}
+          <div className="lg:hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 font-medium">{answeredCount}/{questions.length} answered</span>
-              <div className="w-full mx-3 bg-gray-100 rounded-full h-1.5">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{answeredCount}/{questions.length} answered</span>
+              <div className="w-full mx-3 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5">
                 <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
 
         {/* Desktop Sidebar Nav */}
         <aside className="hidden lg:block w-64 shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-24">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 sticky top-24">
             <NavPanel />
           </div>
         </aside>
@@ -333,11 +333,11 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
       {showNav && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowNav(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-72 bg-white shadow-xl p-4 overflow-y-auto">
+          <div className="absolute right-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-900 shadow-xl p-4 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Question Navigator</h3>
-              <button onClick={() => setShowNav(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-5 h-5 text-gray-500" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Question Navigator</h3>
+              <button onClick={() => setShowNav(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
             <NavPanel />
@@ -348,34 +348,34 @@ export default function TestAttemptClient({ test, questions, userId }: Props) {
       {/* Submit Modal */}
       {showSubmitModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Send className="w-7 h-7 text-blue-900" />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-gray-800">
+            <div className="w-14 h-14 bg-blue-50 dark:bg-blue-950 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Send className="w-7 h-7 text-blue-900 dark:text-blue-400" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 text-center mb-1">Submit Test?</h3>
-            <p className="text-sm text-gray-500 text-center mb-5">Once submitted, you cannot change your answers.</p>
-            <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center mb-1">Submit Test?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-5">Once submitted, you cannot change your answers.</p>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-5 space-y-2">
               {[
-                { label: "Answered", value: answeredCount, color: "text-green-700" },
-                { label: "Not Answered", value: questions.length - answeredCount, color: "text-red-600" },
-                { label: "Marked for Review", value: markedCount, color: "text-amber-600" },
-                { label: "Time Left", value: formatTime(timeLeft), color: "text-blue-700" },
+                { label: "Answered", value: answeredCount, color: "text-green-700 dark:text-green-400" },
+                { label: "Not Answered", value: questions.length - answeredCount, color: "text-red-600 dark:text-red-400" },
+                { label: "Marked for Review", value: markedCount, color: "text-amber-600 dark:text-amber-400" },
+                { label: "Time Left", value: formatTime(timeLeft), color: "text-blue-700 dark:text-blue-400" },
               ].map(s => (
                 <div key={s.label} className="flex justify-between text-sm">
-                  <span className="text-gray-600">{s.label}</span>
+                  <span className="text-gray-600 dark:text-gray-400">{s.label}</span>
                   <span className={`font-bold ${s.color}`}>{s.value}</span>
                 </div>
               ))}
             </div>
             {test.negative_marking > 0 && (
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 flex items-start gap-2">
+              <div className="bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-xl p-3 mb-4 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">This test has negative marking (-{test.negative_marking} per wrong answer). Unanswered questions won't be penalized.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400">This test has negative marking (-{test.negative_marking} per wrong answer).</p>
               </div>
             )}
             <div className="flex gap-3">
               <button onClick={() => setShowSubmitModal(false)}
-                className="flex-1 border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm">
+                className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm">
                 Continue
               </button>
               <button onClick={() => handleSubmit(false)} disabled={submitting}

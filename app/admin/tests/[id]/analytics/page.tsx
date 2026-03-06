@@ -17,10 +17,20 @@ export default async function TestAnalyticsPage({ params }: { params: { id: stri
     .eq("is_completed", true)
     .order("submitted_at", { ascending: false });
 
-  const { data: questionStats } = await supabase
-    .from("result_details")
-    .select("question_id, is_correct, is_skipped, question:questions(question_text, difficulty)")
-    .eq("result_details.result_id", supabase.from("results").select("id").eq("test_id", testId) as any);
+  // Get result IDs for this test first, then fetch details
+  const resultIds = results?.map((_: any, i: number) => i).filter(Boolean) || [];
+  const { data: resultRows } = await supabase
+    .from("results")
+    .select("id")
+    .eq("test_id", testId)
+    .eq("is_completed", true);
+  const ids = resultRows?.map((r: any) => r.id) || [];
+  const { data: questionStats } = ids.length > 0
+    ? await supabase
+        .from("result_details")
+        .select("question_id, is_correct, is_skipped, question:questions(question_text, difficulty)")
+        .in("result_id", ids)
+    : { data: [] };
 
   // Calculate stats
   const totalAttempts = results?.length || 0;

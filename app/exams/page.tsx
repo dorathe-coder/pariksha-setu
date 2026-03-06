@@ -130,12 +130,15 @@ export default async function ExamsPage({ searchParams }: { searchParams: { [key
             {/* Subject Filter */}
             <div className="mb-4">
               <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Subject</label>
-              <select defaultValue={subject || ""}
-                onChange={e => { const url = new URLSearchParams({ ...(cat && { cat }), ...(examParam && { exam: examParam }), ...(q && { q }), ...(e.target.value && { subject: e.target.value }) }); window.location.href = `/exams?${url}`; }}
-                className="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-2 bg-white dark:bg-gray-800 focus:outline-none focus:border-green-500 text-gray-700 dark:text-gray-300">
-                <option value="">All Subjects</option>
-                {subjects?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                <Link href={(() => { const p = new URLSearchParams({...(cat&&{cat}),...(examParam&&{exam:examParam}),...(q&&{q})}); return `/exams?${p}`; })()}
+                  className={`flex items-center w-full px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${!subject ? "bg-green-50 dark:bg-green-950 text-green-700" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}>All Subjects</Link>
+                {subjects?.map(s => {
+                  const p = new URLSearchParams({...(cat&&{cat}),...(examParam&&{exam:examParam}),...(q&&{q}),subject:String(s.id)});
+                  return <Link key={s.id} href={`/exams?${p}`}
+                    className={`flex items-center w-full px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${subject===String(s.id) ? "bg-green-50 dark:bg-green-950 text-green-700" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}>{s.name}</Link>;
+                })}
+              </div>
             </div>
 
             {/* Free/Paid */}

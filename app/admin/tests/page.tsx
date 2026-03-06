@@ -29,10 +29,10 @@ export default async function AdminTestsPage({ searchParams }: { searchParams: {
           <input name="q" type="text" defaultValue={searchParams.q || ""} placeholder="Search tests..."
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:border-green-500 text-gray-900 dark:text-gray-100" />
         </div>
-        <select name="exam" defaultValue={searchParams.exam || ""}
+        <select name="exam"
           className="border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-green-500 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-          <option value="">All Exams</option>
-          {exams?.map(e => <option key={e.id} value={e.id}>{e.icon} {e.name}</option>)}
+          <option value="" selected={!searchParams.exam}>All Exams</option>
+          {exams?.map(e => <option key={e.id} value={e.id} selected={searchParams.exam === String(e.id)}>{e.icon} {e.name}</option>)}
         </select>
         <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-700">Filter</button>
         {(searchParams.q || searchParams.exam) && (

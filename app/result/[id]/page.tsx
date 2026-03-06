@@ -31,7 +31,7 @@ export default async function ResultPage({ params }: { params: { id: string } })
   const { data: profile } = await supabase.from("users").select("name, role").eq("id", user.id).single();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar user={profile} />
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <ResultSummary result={result as unknown as Result} />

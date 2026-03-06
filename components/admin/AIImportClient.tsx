@@ -33,16 +33,46 @@ interface ParsedRow {
   _issueMsg?: string;
 }
 
+// Gujarati digit map
+const GU_DIGIT_MAP: Record<string, string> = {
+  '૦':'0','૧':'1','૨':'2','૩':'3','૪':'4','૫':'5','૬':'6','૭':'7','૮':'8','૯':'9'
+};
+function normalizeDigits(str: string): string {
+  return str.replace(/[૦-૯]/g, d => GU_DIGIT_MAP[d] || d);
+}
+
+// Check if a line starts with a question number (Arabic or Gujarati digits)
+function isQuestionStart(line: string): boolean {
+  const norm = normalizeDigits(line.trim());
+  return /^\d+[.)]\s*.+/.test(norm);
+}
+
 function parseManualText(text: string): { parsed: ParsedRow[]; errors: string[] } {
   const parsed: ParsedRow[] = [];
   const errors: string[] = [];
-  const blocks = text.split(/\n(?=\s*\d+[.)\s])/g).filter(b => b.trim());
 
-  blocks.forEach((block, idx) => {
+  // Split into lines, then group by question number
+  const allLines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  
+  // Group lines into question blocks
+  const blocks: string[][] = [];
+  let current: string[] = [];
+  
+  for (const line of allLines) {
+    if (isQuestionStart(line)) {
+      if (current.length > 0) blocks.push(current);
+      current = [line];
+    } else {
+      current.push(line);
+    }
+  }
+  if (current.length > 0) blocks.push(current);
+
+  blocks.forEach((lines, idx) => {
     try {
-      const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
-      if (lines.length < 3) return;
-      const qText = lines[0].replace(/^\d+[.)\s]+/, "").trim();
+      if (lines.length < 2) return;
+      // Remove question number prefix (supports Arabic AND Gujarati numbers)
+      const qText = lines[0].replace(/^[૦-૯\d]+[.)]\s*/, "").trim();
       if (!qText) return;
 
       let optA = "", optB = "", optC = "", optD = "", answer = "", explanation = "";
@@ -255,7 +285,6 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
         setParsedQuestions(prev => prev.map(q => {
           const issue = issueMap.get(q._id);
           return issue ? { ...q, _hasIssue: true, _issueMsg: (issue as any).message } : { ...q, _hasIssue: false, _issueMsg: undefined };
-          return issue ? { ...q, _hasIssue: true, _issueMsg: (issue as any).message } : { ...q, _hasIssue: false, _issueMsg: undefined };
         }));
       }
       setAiStatus(`✅ Quality check complete! Score: ${data.summary?.quality_score || 0}/100`);
@@ -299,12 +328,18 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
       if (!error) totalSaved += batch.length;
       setSaved(totalSaved);
     }
+    // Update total_questions count on the test
+    if (totalSaved > 0) {
+      const { data: currentTest } = await supabase.from("tests").select("total_questions").eq("id", testId).single();
+      const currentCount = (currentTest as any)?.total_questions || 0;
+      await supabase.from("tests").update({ total_questions: currentCount + totalSaved }).eq("id", testId);
+    }
     setSaving(false);
     setParsedQuestions([]); setPasteText("");
     router.push("/admin/tests"); router.refresh();
   };
 
-  const ic = "w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 bg-white";
+  const ic = "w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100";
 
   const modeOptions: { id: UploadMode; icon: any; label: string; desc: string; badge?: string; color: string }[] = [
     { id: "ai", icon: Sparkles, label: "AI Smart Import", desc: "Paste any question paper — GPT extracts everything", badge: "Best", color: "blue" },
@@ -314,16 +349,16 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 dark:text-gray-100">
       {/* Step 1: Settings */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span className="w-6 h-6 bg-blue-900 text-white rounded-full text-xs flex items-center justify-center font-bold">1</span>
           Select Test & Settings
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Target Test *</label>
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Target Test *</label>
             <select value={testId} onChange={e => setTestId(parseInt(e.target.value))} className={ic}>
               <option value="">Select test...</option>
               {tests.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
@@ -331,21 +366,21 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
             <a href="/admin/tests/new" className="text-xs text-blue-700 hover:underline mt-1 block">+ Create new test</a>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Subject</label>
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Subject</label>
             <select value={subjectId} onChange={e => setSubjectId(parseInt(e.target.value))} className={ic}>
               <option value="0">No specific subject</option>
               {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Topic</label>
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Topic</label>
             <select className={ic}>
               <option value="">No specific topic</option>
               {filteredTopics.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Language</label>
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Language</label>
             <select value={languageId} onChange={e => setLanguageId(parseInt(e.target.value))} className={ic}>
               {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
@@ -354,8 +389,8 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
       </div>
 
       {/* Step 2: Mode */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <span className="w-6 h-6 bg-blue-900 text-white rounded-full text-xs flex items-center justify-center font-bold">2</span>
           Choose Upload Method
         </h3>
@@ -396,7 +431,7 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
             </div>
             <textarea
               value={pasteText} onChange={e => setPasteText(e.target.value)} rows={12}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 resize-y"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 resize-y bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               placeholder={"Paste your question paper here...\n\nExample:\n1. What is the capital of Gujarat?\nA) Mumbai  B) Gandhinagar  C) Surat  D) Rajkot\nAnswer: B\n\nOR any unstructured format — AI will figure it out!"} />
             <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
               <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -425,7 +460,7 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
               <pre className="font-mono text-xs mt-1.5 text-amber-700 whitespace-pre-wrap">{"1. Question here\nA) Option A  B) Option B  C) Option C  D) Option D\nAnswer: B"}</pre>
             </div>
             <textarea value={pasteText} onChange={e => setPasteText(e.target.value)} rows={12}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 resize-y"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 resize-y bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               placeholder="Paste your questions here..." />
             <div className="flex justify-end mt-3">
               <button onClick={() => {
@@ -486,16 +521,16 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
 
       {/* Questions Preview + AI Actions */}
       {parsedQuestions.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
           {/* Header */}
-          <div className="p-5 border-b border-gray-100">
+          <div className="p-5 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{parsedQuestions.length} Questions Ready</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{parsedQuestions.length} Questions Ready</h3>
                   <p className="text-xs text-gray-500">
                     {selectedForAction.size > 0 ? `${selectedForAction.size} selected` : "Review and edit before saving"}
                   </p>
@@ -573,7 +608,7 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
           )}
 
           {/* Questions List */}
-          <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[600px] overflow-y-auto">
             {parsedQuestions.map((q, idx) => (
               <div key={q._id} className={`${q._hasIssue ? "bg-amber-50/50" : ""}`}>
                 <div className="flex items-start gap-3 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -587,7 +622,7 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
                   <span className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center text-xs font-bold text-blue-900 shrink-0">{idx + 1}</span>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 line-clamp-1">{q.question_text || <span className="text-gray-400 italic">Empty question</span>}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-1">{q.question_text || <span className="text-gray-400 italic">Empty question</span>}</p>
                     {q._hasIssue && <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1"><AlertTriangle className="w-3 h-3" />{q._issueMsg}</p>}
                     {q._aiGenerated && !q._hasIssue && <p className="text-xs text-blue-500 mt-0.5 flex items-center gap-1"><Sparkles className="w-3 h-3" />AI extracted</p>}
                   </div>
@@ -654,8 +689,8 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
           </div>
 
           {/* Footer Save */}
-          <div className="p-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-sm text-gray-500">
+          <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {parsedQuestions.filter(q => q.explanation).length}/{parsedQuestions.length} have explanations ·
               {parsedQuestions.filter(q => q._hasIssue).length > 0 && <span className="text-amber-600"> {parsedQuestions.filter(q => q._hasIssue).length} with issues</span>}
             </p>

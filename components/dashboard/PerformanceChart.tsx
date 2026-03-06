@@ -11,12 +11,12 @@ export default function PerformanceChart({ results }: { results: Result[] }) {
   }));
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-      <h3 className="font-semibold text-gray-900 mb-5">Performance Trend</h3>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-5">Performance Trend</h3>
       {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
             <Tooltip

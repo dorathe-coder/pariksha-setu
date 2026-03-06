@@ -16,16 +16,18 @@ export default async function DailyQuizBanner({ userId }: { userId: string }) {
   const completed = attempt?.completed || false;
 
   return (
-    <div className={`rounded-2xl p-4 mb-6 flex items-center justify-between gap-4 ${completed ? "bg-green-50 border border-green-100" : "bg-amber-50 border border-amber-100"}`}>
+    <div className={`rounded-2xl p-4 mb-6 flex items-center justify-between gap-4 ${completed
+      ? "bg-green-50 dark:bg-green-950 border border-green-100 dark:border-green-900"
+      : "bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900"}`}>
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${completed ? "bg-green-100" : "bg-amber-100"}`}>
-          {completed ? <CheckCircle className="w-5 h-5 text-green-600" /> : <Zap className="w-5 h-5 text-amber-600" />}
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${completed ? "bg-green-100 dark:bg-green-900" : "bg-amber-100 dark:bg-amber-900"}`}>
+          {completed ? <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" /> : <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
         </div>
         <div>
-          <p className={`font-semibold text-sm ${completed ? "text-green-800" : "text-amber-800"}`}>
+          <p className={`font-semibold text-sm ${completed ? "text-green-800 dark:text-green-300" : "text-amber-800 dark:text-amber-300"}`}>
             {completed ? "Daily Quiz Completed!" : "Daily Quiz Available"}
           </p>
-          <p className={`text-xs ${completed ? "text-green-600" : "text-amber-600"}`}>
+          <p className={`text-xs ${completed ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
             {completed ? "Come back tomorrow for new questions" : "10 free questions — starts fresh every day"}
           </p>
         </div>
