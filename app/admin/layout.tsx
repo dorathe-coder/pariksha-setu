@@ -20,12 +20,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen flex" style={{backgroundColor: 'var(--bg2)'}}>
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <AdminSidebar adminName={profile.name} />
+        <AdminSidebar name={profile.name} />
       </div>
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50">
-        <AdminMobileHeader adminName={profile.name} />
+        <AdminMobileHeader name={profile.name} />
       </div>
 
       <main className="flex-1 lg:ml-64 min-h-screen overflow-auto">
