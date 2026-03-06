@@ -4,60 +4,139 @@
 
 :root {
   --bg: #ffffff;
-  --bg2: #f7f8fa;
-  --bg3: #eef0f4;
+  --bg2: #f4f6f9;
+  --bg3: #eaecf0;
   --card: #ffffff;
-  --border: #e5e7eb;
+  --border: #e2e5ea;
   --text: #111827;
-  --text2: #4b5563;
-  --text3: #9ca3af;
+  --text2: #374151;
+  --text3: #6b7280;
   --green: #16a34a;
   --green-light: #dcfce7;
-  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+  --input-bg: #ffffff;
+  --input-text: #111827;
+  --input-border: #d1d5db;
 }
+
 .dark {
-  --bg: #0f1117;
-  --bg2: #1a1d27;
-  --bg3: #252836;
-  --card: #1a1d27;
-  --border: #2d3148;
+  --bg: #0d0f14;
+  --bg2: #161820;
+  --bg3: #1e2130;
+  --card: #1a1c26;
+  --border: #2a2d3e;
   --text: #f1f5f9;
-  --text2: #94a3b8;
-  --text3: #64748b;
+  --text2: #cbd5e1;
+  --text3: #94a3b8;
   --green: #22c55e;
   --green-light: #14532d;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --input-bg: #1e2130;
+  --input-text: #f1f5f9;
+  --input-border: #3a3d52;
 }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
 body {
-  font-family: 'Inter', 'Noto Sans Gujarati', -apple-system, sans-serif;
+  font-family: 'Inter', 'Noto Sans Gujarati', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--bg2);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.3s, color 0.3s;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s, color 0.25s;
 }
+
+/* Fix all inputs in dark mode */
+input, textarea, select {
+  color: var(--input-text) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text3) !important;
+  opacity: 1;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #16a34a !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.dark input, .dark textarea, .dark select {
+  color-scheme: dark;
+}
+
+option {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
 @layer components {
-  .btn-primary { @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 text-sm bg-green-600 hover:bg-green-700 text-white active:scale-95; }
-  .btn-outline { @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 text-sm border border-gray-200 dark:border-gray-700 hover:border-green-500 hover:text-green-600 bg-white dark:bg-gray-800; }
-  .card { @apply bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl; box-shadow: var(--shadow); }
-  .card-hover { @apply transition-all duration-200 hover:-translate-y-0.5; }
-  .card-hover:hover { box-shadow: var(--shadow-lg); }
-  .input { @apply w-full rounded-xl px-4 py-2.5 text-sm outline-none border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all focus:border-green-500 focus:ring-2 focus:ring-green-500/10; }
-  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
-  .fade-in { animation: fadeIn 0.35s ease both; }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 text-sm bg-green-600 hover:bg-green-700 text-white active:scale-95 shadow-sm;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 text-sm border border-gray-200 dark:border-gray-700 hover:border-green-500 hover:text-green-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200;
+  }
+  .card {
+    @apply rounded-2xl border;
+    background-color: var(--card);
+    border-color: var(--border);
+    box-shadow: var(--shadow);
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 cursor-pointer;
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  .input {
+    @apply w-full rounded-xl px-4 py-2.5 text-sm outline-none border transition-all;
+    color: var(--input-text);
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+  }
+  .input:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .section-label {
+    @apply text-xs font-bold uppercase tracking-widest;
+    color: var(--text3);
+  }
+  .fade-in { animation: fadeIn 0.3s ease both; }
   .slide-up { animation: slideUp 0.35s ease both; }
   .stagger > * { animation: slideUp 0.4s ease both; }
-  .stagger > *:nth-child(1) { animation-delay: 0.05s; }
-  .stagger > *:nth-child(2) { animation-delay: 0.10s; }
-  .stagger > *:nth-child(3) { animation-delay: 0.15s; }
-  .stagger > *:nth-child(4) { animation-delay: 0.20s; }
-  .stagger > *:nth-child(5) { animation-delay: 0.25s; }
-  .stagger > *:nth-child(6) { animation-delay: 0.30s; }
+  .stagger > *:nth-child(1) { animation-delay: 0.04s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.08s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.12s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.16s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.20s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.24s; }
 }
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* Admin panel dark mode */
+.dark .admin-sidebar {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+/* Number input arrows hide */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { opacity: 0.5; }
