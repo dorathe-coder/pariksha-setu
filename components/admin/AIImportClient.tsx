@@ -331,11 +331,10 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
       if (!error) totalSaved += batch.length;
       setSaved(totalSaved);
     }
-    // Update total_questions count on the test
+    // Update total_questions with ACTUAL count from DB (not += to avoid double counting)
     if (totalSaved > 0) {
-      const { data: currentTest } = await supabase.from("tests").select("total_questions").eq("id", testId).single();
-      const currentCount = (currentTest as any)?.total_questions || 0;
-      await supabase.from("tests").update({ total_questions: currentCount + totalSaved }).eq("id", testId);
+      const { count } = await supabase.from("questions").select("*", { count: "exact", head: true }).eq("test_id", testId);
+      await supabase.from("tests").update({ total_questions: count || 0 }).eq("id", testId);
     }
     savingRef.current = false;
     setSaving(false);

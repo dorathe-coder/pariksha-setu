@@ -70,7 +70,12 @@ export default function TestQuestionsEditor({
     if (!confirm("Delete this question?")) return;
     setDeleting(id);
     await supabase.from("questions").delete().eq("id", id);
-    setQuestions(prev => prev.filter(q => q.id !== id));
+    setQuestions(prev => {
+      const updated = prev.filter(q => q.id !== id);
+      // Update total_questions with actual count
+      supabase.from("tests").update({ total_questions: updated.length }).eq("id", testId);
+      return updated;
+    });
     setDeleting(null);
   };
 
