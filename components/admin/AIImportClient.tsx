@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import {
@@ -311,8 +311,11 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
     else setSelectedForAction(new Set(parsedQuestions.map(q => q._id)));
   };
 
+  const savingRef = React.useRef(false);
   const handleSaveAll = async () => {
     if (!testId || parsedQuestions.length === 0) return;
+    if (savingRef.current) return; // prevent double call
+    savingRef.current = true;
     setSaving(true); setSaved(0);
     const BATCH_SIZE = 50;
     let totalSaved = 0;
@@ -334,6 +337,7 @@ export default function AIImportClient({ tests, subjects, topics, languages, def
       const currentCount = (currentTest as any)?.total_questions || 0;
       await supabase.from("tests").update({ total_questions: currentCount + totalSaved }).eq("id", testId);
     }
+    savingRef.current = false;
     setSaving(false);
     setParsedQuestions([]); setPasteText("");
     router.push("/admin/tests"); router.refresh();
